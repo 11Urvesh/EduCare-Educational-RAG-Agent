@@ -1,0 +1,25 @@
+# Core
+fastapi
+uvicorn[standard]
+streamlit
+python-multipart
+requests
+python-dotenv
+
+# LangChain
+langchain
+langchain-core
+langchain-community
+langchain-groq
+langchain-huggingface
+
+# Embeddings & Vector DB
+sentence-transformers
+chromadb
+
+# Document loaders
+pypdf
+docx2txt
+youtube-transcript-api
+pytube
+fpdf2
