@@ -10,22 +10,17 @@ from langchain_huggingface import HuggingFaceEmbeddings
 
 VECTOR_STORE_BASE = Path("vector_store")
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
+PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
 
-CHAT_PROMPT = ChatPromptTemplate.from_template("""You are EduCare, an intelligent educational assistant.
-Answer the student's question clearly and concisely based ONLY on the provided context.
-Do not just return the information present in the context as it is, you may use your knowledge as well, but
-If the answer is not found in the context, say: "I couldn't find this in the provided study material."
-
-Context:
-{context}
-
-Question: {question}""")
+CHAT_PROMPT = ChatPromptTemplate.from_template(
+    (PROMPTS_DIR / "chat_prompt.txt").read_text(encoding="utf-8")
+)
 
 
 def _get_llm() -> ChatGroq:
     return ChatGroq(
         model="llama-3.1-8b-instant",
-        temperature=0.3,
+        temperature=0.5,
         api_key=os.getenv("GROQ_API_KEY"),
     )
 

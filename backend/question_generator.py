@@ -8,64 +8,11 @@ from langchain_huggingface import HuggingFaceEmbeddings
 
 VECTOR_STORE_BASE = Path("vector_store")
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
+PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
 
-MCQ_PROMPT = """You are EduCare, an expert exam paper setter.
-Using ONLY the provided study material context below, generate a multiple choice question paper.
 
-Exam Specifications:
-- Topic focus: {topic_focus}
-- Total questions: {num_questions}
-- Marks per question: {marks_per_question}
-- Total marks: {total_marks}
-- Duration: {duration_minutes} minutes
-- Difficulty level: {difficulty}
-- Negative marking: {negative_marking}
-
-Context from study material:
-{context}
-
-IMPORTANT: Return ONLY a valid JSON array with no explanation and no markdown fences. Format:
-[
-  {{
-    "q_no": 1,
-    "question": "...",
-    "options": {{"A": "...", "B": "...", "C": "...", "D": "..."}},
-    "correct_answer": "A",
-    "explanation": "Brief explanation why this is correct"
-  }}
-]"""
-
-DESCRIPTIVE_PROMPT = """You are EduCare, an expert exam paper setter.
-Using ONLY the provided study material context below, generate a descriptive question paper.
-
-Exam Specifications:
-- Topic focus: {topic_focus}
-- Short questions: {short_q_count} questions × {short_q_marks} marks each
-- Long questions: {long_q_count} questions × {long_q_marks} marks each
-- Total marks: {total_marks}
-- Duration: {duration_minutes} minutes
-- Difficulty level: {difficulty}
-
-Context from study material:
-{context}
-
-IMPORTANT: Return ONLY a valid JSON array with no explanation and no markdown fences. Format:
-[
-  {{
-    "q_no": 1,
-    "type": "short",
-    "marks": {short_q_marks},
-    "question": "...",
-    "answer_hint": "Key points expected in the answer"
-  }},
-  {{
-    "q_no": 6,
-    "type": "long",
-    "marks": {long_q_marks},
-    "question": "...",
-    "answer_hint": "Key points expected in the answer"
-  }}
-]"""
+def _load_prompt(filename: str) -> str:
+    return (PROMPTS_DIR / filename).read_text(encoding="utf-8")
 
 
 def _get_llm() -> ChatGroq:
@@ -103,7 +50,7 @@ def _parse_json(raw: str) -> list:
 
 def generate_mcq(session_id: str, config: dict) -> list:
     context = _get_context(session_id, config.get("topic_focus", ""))
-    prompt = MCQ_PROMPT.format(
+    prompt = _load_prompt("mcq_prompt.txt").format(
         topic_focus=config.get("topic_focus") or "All topics in the material",
         num_questions=config["num_questions"],
         marks_per_question=config["marks_per_question"],
@@ -123,12 +70,14 @@ def generate_descriptive(session_id: str, config: dict) -> list:
     short_q = config.get("short_questions") or {}
     long_q = config.get("long_questions") or {}
 
-    prompt = DESCRIPTIVE_PROMPT.format(
+    short_count = short_q.get("count", 0)
+    prompt = _load_prompt("descriptive_prompt.txt").format(
         topic_focus=config.get("topic_focus") or "All topics in the material",
-        short_q_count=short_q.get("count", 0),
+        short_q_count=short_count,
         short_q_marks=short_q.get("marks_each", 0),
         long_q_count=long_q.get("count", 0),
         long_q_marks=long_q.get("marks_each", 0),
+        long_q_start=short_count + 1,
         total_marks=config["total_marks"],
         duration_minutes=config["duration_minutes"],
         difficulty=config["difficulty"],
