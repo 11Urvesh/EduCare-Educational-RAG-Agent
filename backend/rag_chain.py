@@ -5,11 +5,8 @@ from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
-from langchain_community.vectorstores import Chroma
-from langchain_huggingface import HuggingFaceEmbeddings
+from backend.vectorstore import load_store
 
-VECTOR_STORE_BASE = Path("vector_store")
-EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
 
 CHAT_PROMPT = ChatPromptTemplate.from_template(
@@ -25,12 +22,8 @@ def _get_llm() -> ChatGroq:
     )
 
 
-def _load_vectorstore(session_id: str) -> Chroma:
-    return Chroma(
-        persist_directory=str(VECTOR_STORE_BASE / session_id),
-        embedding_function=HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL),
-        collection_name=session_id,
-    )
+def _load_vectorstore(session_id: str):
+    return load_store(session_id)
 
 
 def _format_docs(docs) -> str:

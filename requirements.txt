@@ -12,14 +12,17 @@ langchain-core
 langchain-community
 langchain-groq
 langchain-huggingface
+langchain-text-splitters
+langchain-experimental
 
 # Embeddings & Vector DB
 sentence-transformers
 chromadb
 
+# Document parsing (PDF, DOCX, OCR, tables)
+docling
+
 # Document loaders
-pypdf
-docx2txt
 youtube-transcript-api
 pytube
 fpdf2

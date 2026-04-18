@@ -3,11 +3,8 @@ import os
 from pathlib import Path
 
 from langchain_groq import ChatGroq
-from langchain_community.vectorstores import Chroma
-from langchain_huggingface import HuggingFaceEmbeddings
+from backend.vectorstore import load_store
 
-VECTOR_STORE_BASE = Path("vector_store")
-EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
 
 
@@ -25,11 +22,7 @@ def _get_llm() -> ChatGroq:
 
 
 def _get_context(session_id: str, topic_focus: str, k: int = 12) -> str:
-    vectorstore = Chroma(
-        persist_directory=str(VECTOR_STORE_BASE / session_id),
-        embedding_function=HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL),
-        collection_name=session_id,
-    )
+    vectorstore = load_store(session_id)
     query = topic_focus if topic_focus else "main topics and key concepts"
     docs = vectorstore.similarity_search(query, k=k)
     return "\n\n".join(doc.page_content for doc in docs)
