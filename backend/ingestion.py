@@ -2,7 +2,9 @@ import re
 import shutil
 from pathlib import Path
 
-from docling.document_converter import DocumentConverter
+from docling.datamodel.base_models import InputFormat
+from docling.datamodel.pipeline_options import PdfPipelineOptions
+from docling.document_converter import DocumentConverter, PdfFormatOption
 from langchain_community.document_loaders import YoutubeLoader
 from langchain_core.documents import Document
 from langchain_experimental.text_splitter import SemanticChunker
@@ -11,8 +13,12 @@ from youtube_transcript_api._errors import NoTranscriptFound, TranscriptsDisable
 
 from backend.vectorstore import VECTOR_STORE_BASE, create_store, get_embeddings
 
-# Initialized once at import time — Docling downloads layout/OCR models on first run (~500MB)
-_converter = DocumentConverter()
+# images_scale=1.0 reduces per-page RAM by 4x vs default (2.0)
+# do_ocr=False skips RapidOCR on digital PDFs — OCR only needed for scanned pages
+_pdf_options = PdfPipelineOptions(do_ocr=True, do_table_structure=True, images_scale=1.0)
+_converter = DocumentConverter(
+    format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=_pdf_options)}
+)
 
 HEADERS_TO_SPLIT = [("#", "H1"), ("##", "H2"), ("###", "H3")]
 TABLE_PATTERN = re.compile(r"(\|.+\|[ \t]*\n)+", re.MULTILINE)
