@@ -1,0 +1,23 @@
+# Secrets
+.env
+
+# Runtime data — created fresh inside the container
+vector_store/
+temp_uploads/
+
+# Virtual environment — Docker installs its own
+venv/
+.venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Git history — not needed inside the image
+.git/
+.gitignore
+
+# Dev/docs files — not needed at runtime
+docs/
+*.md
