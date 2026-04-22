@@ -14,7 +14,7 @@ def _load_prompt(filename: str) -> str:
 
 def _get_llm() -> ChatGroq:
     return ChatGroq(
-        model="llama-3.1-8b-instant",
+        model="llama-3.3-70b-versatile", # llama-3.1-8b-instant
         temperature=0.5,
         max_tokens=8000,
         api_key=os.getenv("GROQ_API_KEY"),

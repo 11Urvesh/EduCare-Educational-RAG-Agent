@@ -4,15 +4,20 @@ An AI-powered study assistant that lets you upload study material, chat with it,
 
 ---
 
+## Architecture
+
+![EduCare RAG Flow](flow-diagram.png)
+
+---
+
 ## Features
 
-- **Upload Study Material** — PDF, DOCX, TXT files or YouTube video URLs (with captions)
-- **Advanced PDF Parsing** — Handles scanned documents, tables, images via Docling (OCR + layout analysis)
-- **Structure-Aware Chunking** — Splits on document headers first, then semantically within sections for precise retrieval
-- **Chat with Material** — Ask questions and get answers grounded in uploaded content, with LLM reasoning and explanation
-- **Generate Exam Papers** — Auto-generate MCQ or Descriptive question papers with configurable marks, duration, and difficulty
-- **Download PDFs** — Export Question Paper and Answer Key as separate PDF files
-- **Pluggable Vector Store** — ChromaDB by default, swap to Qdrant by editing one file
+- **Upload Study Material** — PDF, DOCX, TXT or YouTube URLs
+- **Advanced PDF Parsing** — Scanned docs, tables, images via Docling (OCR + layout analysis)
+- **Structure-Aware Chunking** — Header-first splits, then semantic chunking within sections
+- **Chat with Material** — Context-grounded answers with LLM reasoning and explanation
+- **Generate Exam Papers** — MCQ or Descriptive with configurable marks, duration, difficulty
+- **Download PDFs** — Question Paper and Answer Key as separate PDFs
 
 ---
 
@@ -22,11 +27,11 @@ An AI-powered study assistant that lets you upload study material, chat with it,
 |-------|-----------|
 | Frontend | Streamlit |
 | Backend | FastAPI |
-| LLM | Groq (`llama-3.1-8b-instant`) |
+| LLM | Groq (`llama-3.3-70b-versatile`) |
 | Embeddings | HuggingFace (`all-MiniLM-L6-v2`) |
-| PDF Parsing | Docling (OCR + layout + table extraction) |
-| Chunking | Structure-aware (MarkdownHeaderTextSplitter → SemanticChunker) |
-| Vector DB | ChromaDB (pluggable via `backend/vectorstore.py`) |
+| PDF Parsing | Docling (OCR + layout + tables) |
+| Chunking | MarkdownHeaderTextSplitter → SemanticChunker |
+| Vector DB | ChromaDB |
 | RAG Framework | LangChain |
 | PDF Generation | fpdf2 |
 
@@ -36,143 +41,72 @@ An AI-powered study assistant that lets you upload study material, chat with it,
 
 ```
 EduCare_RAG/
-├── main.py                       # FastAPI backend server
-├── .env                          # API keys (not committed)
-├── .env.example                  # Template for environment variables
-├── requirements.txt              # Python dependencies
+├── main.py                       # FastAPI backend
+├── .env.example                  # Environment variable template
+├── requirements.txt              # Dependencies
 ├── backend/
-│   ├── vectorstore.py            # Vector store abstraction (swap ChromaDB ↔ Qdrant here)
-│   ├── ingestion.py              # Docling parsing + structure-aware chunking
+│   ├── vectorstore.py            # Vector store (embeddings + ChromaDB)
+│   ├── ingestion.py              # Docling parsing + chunking
 │   ├── rag_chain.py              # RAG Q&A chain
-│   ├── question_generator.py     # MCQ and descriptive question generation
+│   ├── question_generator.py     # Exam paper generation
 │   ├── pdf_generator.py          # PDF export
-│   └── schemas.py                # Pydantic request/response models
+│   └── schemas.py                # Request/response models
 ├── frontend/
 │   └── app.py                    # Streamlit UI
-├── prompts/
-│   ├── chat_prompt.txt           # System prompt for chat
-│   ├── mcq_prompt.txt            # System prompt for MCQ generation
-│   └── descriptive_prompt.txt    # System prompt for descriptive generation
-└── vector_store/                 # ChromaDB storage (auto-created, not committed)
+└── prompts/
+    ├── chat_prompt.txt
+    ├── mcq_prompt.txt
+    └── descriptive_prompt.txt
 ```
 
 ---
 
 ## Getting Started
 
-### 1. Clone the repository
+### 1. Clone & install
 
 ```bash
 git clone https://github.com/11Urvesh/EduCare-Educational-RAG-Agent.git
 cd EduCare-Educational-RAG-Agent
-```
-
-### 2. Create a virtual environment
-
-```bash
 python -m venv venv
-venv\Scripts\activate        # Windows
-# source venv/bin/activate   # macOS/Linux
-```
-
-### 3. Install dependencies
-
-```bash
+venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 4. Set up environment variables
+### 2. Set up environment variables
 
 ```bash
-copy .env.example .env       # Windows
-# cp .env.example .env       # macOS/Linux
+copy .env.example .env
 ```
 
-Open `.env` and fill in your API keys:
+Add your Groq API key inside `.env` — get one at [console.groq.com](https://console.groq.com):
 
 ```
 GROQ_API_KEY=your_groq_api_key_here
 HF_HUB_DISABLE_SYMLINKS_WARNING=1
 ```
 
-Get a Groq API key at [console.groq.com](https://console.groq.com)
-
-### 5. Pre-download Docling models (first-time only)
-
-On first run, Docling downloads layout and OCR models (~500MB) to your HuggingFace cache. Run this once before starting the server so it doesn't happen mid-request:
+### 3. Pre-download Docling models *(first-time only, ~500MB)*
 
 ```bash
 python -c "from docling.document_converter import DocumentConverter; DocumentConverter()"
 ```
 
-> **Windows users:** Enable Developer Mode (`Settings → Privacy & Security → For Developers → Developer Mode → ON`) before this step to allow symlinks in the HuggingFace cache.
+> **Windows:** Enable Developer Mode (`Settings → For Developers → Developer Mode → ON`) before this step.
 
-### 6. Run the backend
+### 4. Run
 
+**Terminal 1 — Backend:**
 ```bash
 uvicorn main:app --reload
 ```
 
-Backend runs at `http://localhost:8000`. API docs at `http://localhost:8000/docs`.
-
-### 7. Run the frontend
-
-Open a second terminal:
-
+**Terminal 2 — Frontend:**
 ```bash
 streamlit run frontend/app.py
 ```
 
-Frontend opens at `http://localhost:8501`.
-
-> Start the **backend first**, then the frontend.
-
----
-
-## RAG Pipeline
-
-```
-Upload File / YouTube URL
-        ↓
-   Docling (PDF/DOCX) or direct read (TXT)
-   → Structured Markdown with headers, tables, sections
-        ↓
-   Has headers (#, ##, ###)?
-   ├── YES → MarkdownHeaderTextSplitter → named sections
-   │          → SemanticChunker within each section
-   │          → Each chunk tagged: {source, section, page}
-   │
-   └── NO  → SemanticChunker on full text
-              → Each chunk tagged: {source, page}
-        ↓
-   ChromaDB (embeddings: all-MiniLM-L6-v2)
-        ↓
-   Chat  → retrieve top-5 chunks → Groq LLM → Answer
-   Generate → retrieve top-12 chunks → Groq LLM → JSON questions → PDF
-```
-
----
-
-## Swapping Vector Store (ChromaDB → Qdrant)
-
-All vector store logic is isolated in `backend/vectorstore.py`. To switch to Qdrant:
-
-```python
-# backend/vectorstore.py — replace create_store() and load_store() only
-
-from langchain_qdrant import QdrantVectorStore
-from qdrant_client import QdrantClient
-
-def create_store(docs, session_id):
-    client = QdrantClient(url="http://localhost:6333")
-    return QdrantVectorStore.from_documents(docs, get_embeddings(), client=client, collection_name=session_id)
-
-def load_store(session_id):
-    client = QdrantClient(url="http://localhost:6333")
-    return QdrantVectorStore(client=client, collection_name=session_id, embedding=get_embeddings())
-```
-
-No other file needs to change.
+> Start backend first. Frontend opens at `http://localhost:8501`.
 
 ---
 
@@ -190,7 +124,6 @@ No other file needs to change.
 
 ## Notes
 
-- Sessions are not persisted — vector stores are cleared on server restart
-- YouTube URLs must have captions/transcripts enabled
-- Docling models are cached in `~/.cache/huggingface/hub/` after first download
-- Prompt templates are in `prompts/` — edit `.txt` files to tune LLM behaviour without touching Python code
+- Sessions are not persisted — vector stores clear on server restart
+- YouTube URLs must have captions enabled
+- Edit files in `prompts/` to tune LLM behaviour without touching Python code
