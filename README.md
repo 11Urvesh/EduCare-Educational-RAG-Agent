@@ -6,7 +6,7 @@ An AI-powered study assistant that lets you upload study material, chat with it,
 
 ## Architecture
 
-<img src="flow-diagram.png" width="750"/>
+<img src="flow-diagram.png" width="350"/>
 
 ---
 
