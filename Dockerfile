@@ -23,7 +23,7 @@ WORKDIR /app
 # Copy requirements first (before code) so Docker can cache this layer.
 # If only your code changes, pip install is skipped on rebuild — saves ~5 min.
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --timeout=200 --retries=5 -r requirements.txt
 
 # ── Pre-download Docling models ────────────────────────────────────────────────
 # Docling downloads layout + OCR models (~500MB) from HuggingFace on first use.

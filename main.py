@@ -8,6 +8,7 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.ingestion import create_vector_store, delete_session_store, load_document, load_youtube
+from backend.vectorstore import get_embeddings
 from backend.question_generator import generate_descriptive, generate_mcq
 from backend.rag_chain import get_answer
 from backend.schemas import (
@@ -31,6 +32,7 @@ async def lifespan(app: FastAPI):
         shutil.rmtree(VECTOR_STORE_BASE)
     VECTOR_STORE_BASE.mkdir(parents=True, exist_ok=True)
     TEMP_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    get_embeddings()  # warm up embedding model once at startup
     yield
     # Shutdown: clean everything
     if VECTOR_STORE_BASE.exists():
