@@ -11,8 +11,13 @@ EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 # import qdrant_client
 
 
+_embeddings: HuggingFaceEmbeddings | None = None
+
 def get_embeddings() -> HuggingFaceEmbeddings:
-    return HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
+    global _embeddings
+    if _embeddings is None:
+        _embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
+    return _embeddings
 
 
 def create_store(docs: list, session_id: str):
