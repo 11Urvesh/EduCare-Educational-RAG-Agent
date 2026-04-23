@@ -1,6 +1,10 @@
 # Environment variables (contains API keys — never commit this)
 .env
 
+# Runtime data
+vector_store/
+temp_uploads/
+
 # Python cache
 __pycache__/
 *.py[cod]
