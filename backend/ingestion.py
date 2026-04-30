@@ -136,6 +136,13 @@ def load_youtube(url: str) -> list[Document]:
             "This video has no captions/transcripts available. "
             "Please use a video with captions enabled."
         )
+    except Exception as e:
+        if "SSL" in str(e) or "ConnectionPool" in str(e) or "Max retries" in str(e):
+            raise ValueError(
+                "YouTube is not accessible from this hosted environment. "
+                "Please download the transcript manually and upload it as a TXT file instead."
+            )
+        raise ValueError(f"Failed to fetch YouTube transcript: {str(e)}")
     text = "\n\n".join(doc.page_content for doc in raw_docs)
     return _semantic_chunk(text, {"source": url})
 

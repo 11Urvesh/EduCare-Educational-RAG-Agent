@@ -50,7 +50,7 @@ if not st.session_state.material_ready:
         )
     with col2:
         youtube_url = st.text_input(
-            "Or paste a YouTube URL",
+            "Or paste a YouTube URL ⚠️ works locally only",
             placeholder="https://www.youtube.com/watch?v=..."
         )
 
