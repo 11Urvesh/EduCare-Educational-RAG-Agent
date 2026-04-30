@@ -14,7 +14,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          lfs: true
 
       - name: Push to Hugging Face Spaces
         env:
@@ -22,5 +21,14 @@ jobs:
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
+
+          # Orphan branch = no git history, so old vector_store binaries are not included
+          git checkout --orphan hf-clean
+
+          # Remove PNG from staging — HF now blocks binary files without LFS/Xet
+          git rm --cached flow-diagram.png 2>/dev/null || true
+
+          git commit -m "Deploy to HF Spaces"
+
           git remote add hfspace https://Urvesh11:${HF_TOKEN}@huggingface.co/spaces/Urvesh11/EduCare-RAG
-          git push hfspace HEAD:main --force
+          git push hfspace hf-clean:main --force
