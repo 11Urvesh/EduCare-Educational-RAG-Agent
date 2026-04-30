@@ -100,12 +100,18 @@ def generate_mcq_papers(questions: list, meta: dict, marks_per_q: int) -> tuple[
 
     for q in questions:
         ak.set_font("Helvetica", "B", 10)
+        ak.set_x(ak.l_margin)
         ak.multi_cell(W, 7, _safe(f"Q{q['q_no']}. {q['question']}"))
         ak.set_font("Helvetica", "", 10)
         ak.set_fill_color(220, 240, 220)
-        ak.multi_cell(W, 6, _safe(f"  Answer: {q['correct_answer']}"), fill=True)
+        ak.set_x(ak.l_margin)
+        correct_letter = q['correct_answer']
+        correct_text = q.get('options', {}).get(correct_letter, "")
+        answer_line = f"  Answer: {correct_letter}. {correct_text}" if correct_text else f"  Answer: {correct_letter}"
+        ak.multi_cell(W, 6, _safe(answer_line), fill=True)
         if q.get("explanation"):
             ak.set_font("Helvetica", "I", 9)
+            ak.set_x(ak.l_margin)
             ak.multi_cell(W, 6, _safe(f"  Explanation: {q['explanation']}"))
         ak.ln(4)
 
@@ -155,9 +161,11 @@ def generate_descriptive_papers(questions: list, meta: dict) -> tuple[bytes, byt
     for q in questions:
         label = "Short" if q.get("type") == "short" else "Long"
         ak.set_font("Helvetica", "B", 10)
+        ak.set_x(ak.l_margin)
         ak.multi_cell(W, 7, _safe(f"Q{q['q_no']}. [{label} - {q['marks']} marks]  {q['question']}"))
         ak.set_font("Helvetica", "I", 9)
         ak.set_fill_color(230, 240, 255)
+        ak.set_x(ak.l_margin)
         ak.multi_cell(W, 6, _safe(f"  Answer Hint: {q.get('answer_hint', '')}"), fill=True)
         ak.ln(5)
 
