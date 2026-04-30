@@ -1,3 +1,12 @@
+---
+title: EduCare RAG
+emoji: 📚
+colorFrom: blue
+colorTo: purple
+sdk: docker
+pinned: false
+---
+
 # EduCare RAG — Educational AI Agent
 
 An AI-powered study assistant that lets you upload study material, chat with it, and auto-generate exam papers using Retrieval-Augmented Generation (RAG).
