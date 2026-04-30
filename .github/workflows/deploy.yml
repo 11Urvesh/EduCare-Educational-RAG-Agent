@@ -1,0 +1,26 @@
+name: Deploy to Hugging Face Spaces
+
+on:
+  push:
+    branches:
+      - deployment_on_HFspace
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Push to Hugging Face Spaces
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git remote add hfspace https://Urvesh11:${HF_TOKEN}@huggingface.co/spaces/Urvesh11/EduCare-RAG
+          git push hfspace HEAD:main --force
